@@ -1,0 +1,30 @@
+{
+  "name": "d3-xyzoom",
+  "description": "Pan and zoom SVG, HTML or Canvas using mouse or touch input with different scale factors for x and y.",
+  "main": "build/d3-xyzoom.js",
+  "authors": [
+    "Étienne Corbillé <ecorbille@wiremind.fr>"
+  ],
+  "license": "BSD-3-Clause",
+  "keywords": [
+    "d3",
+    "d3-module",
+    "zoom",
+    "behavior",
+    "interaction"
+  ],
+  "homepage": "https://github.com/etiennecrb/d3-xyzoom",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "d3": "^4.4.0",
+    "d3-dispatch": "^1.0.2",
+    "d3-interpolate": "^1.1.2",
+    "d3-selection": "^1.0.3"
+  }
+}

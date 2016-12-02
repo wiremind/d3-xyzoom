@@ -1,0 +1,38 @@
+{
+  "name": "d3-xyzoom",
+  "version": "0.0.1",
+  "description": "Pan and zoom SVG, HTML or Canvas using mouse or touch input with different scale factors for x and y.",
+  "keywords": [
+    "d3",
+    "d3-module",
+    "zoom",
+    "behavior",
+    "interaction"
+  ],
+  "license": "BSD-3-Clause",
+  "main": "build/d3-xyzoom.js",
+  "jsnext:main": "index",
+  "homepage": "https://github.com/etiennecrb/d3-xyzoom",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/etiennecrb/d3-xyzoom.git"
+  },
+  "scripts": {
+    "pretest": "rm -rf build && mkdir build && rollup -g d3-dispatch:d3,d3-drag:d3,d3-interpolate:d3,d3-selection:d3,d3-transition:d3 -f umd -n d3 -o build/d3-xyzoom.js -- index.js",
+    "test": "tape 'test/**/*-test.js'",
+    "prepublish": "npm run test && uglifyjs build/d3-xyzoom.js -c -m -o build/d3-xyzoom.min.js",
+    "postpublish": "zip -j build/d3-xyzoom.zip -- LICENSE README.md build/d3-xyzoom.js build/d3-xyzoom.min.js"
+  },
+  "dependencies": {
+    "d3-dispatch": "1",
+    "d3-drag": "1",
+    "d3-interpolate": "1",
+    "d3-selection": "1",
+    "d3-transition": "1"
+  },
+  "devDependencies": {
+    "rollup": "0.27",
+    "tape": "4",
+    "uglify-js": "2"
+  }
+}

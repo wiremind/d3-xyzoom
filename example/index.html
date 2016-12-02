@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<!--suppress ALL -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="d3-xyzoom.js"></script>
+    <style>
+        .axis path {
+            display: none;
+        }
+        .axis line {
+            stroke-opacity: 0.1;
+            shape-rendering: crispEdges;
+        }
+    </style>
+</head>
+
+<body>
+<div><button>Reset</button></div>
+<svg width="960" height="500">
+</svg>
+
+<script>
+
+    var svg = d3.select('svg');
+    var width = +svg.attr('width');
+    var height = +svg.attr('height');
+
+    var x = d3.scaleLinear()
+            .domain([0, 100])
+            .range([-1, width + 1]);
+
+    var y = d3.scaleLinear()
+            .domain([0, 100])
+            .range([-1, height + 1]);
+
+    var ymax = 500;
+
+    var zoom = d3.xyzoom()
+            .extent([[x.range()[0], y.range()[0]], [x.range()[1], y.range()[1]]])
+            .scaleExtent([[1, 10], [0, 15]])
+            .scaleRatio([0.5, 1])
+            .translateExtent([[x.range()[0], y.range()[0]], [x.range()[1], y(ymax)]])
+            .on('zoom', zoomed);
+
+    var xAxis = d3.axisBottom(x)
+            .ticks((width + 2) / (height + 2) * 10)
+            .tickSize(height)
+            .tickPadding(8 - height);
+
+    var yAxis = d3.axisRight(y)
+            .ticks(10)
+            .tickSize(width)
+            .tickPadding(8 - width);
+
+    var gX = svg.append('g')
+            .attr('class', 'axis axis--x')
+            .call(xAxis);
+
+    var gY = svg.append('g')
+            .attr('class', 'axis axis--y')
+            .call(yAxis);
+
+    d3.select('button')
+            .on('click', reset);
+
+    svg.call(zoom);
+
+    function zoomed() {
+        gX.call(xAxis.scale(d3.event.transform.rescaleX(x)));
+        gY.call(yAxis.scale(d3.event.transform.rescaleY(y)));
+    }
+
+    function reset() {
+        svg.transition()
+                .duration(750)
+                .call(zoom.transform, d3.xyzoomIdentity);
+    }
+
+</script>
+</body>
+</html>
