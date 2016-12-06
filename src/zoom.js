@@ -39,6 +39,8 @@ export default function() {
     extent = defaultExtent,
     kx0 = 0,
     ky0 = 0,
+    kx0u = 0, // Min scale extent defined by user, can be overridden by kx0 and ky0 defined in constrainScaleExtent
+    ky0u = 0,
     kx1 = Infinity,
     ky1 = Infinity,
     rx = 1,
@@ -381,8 +383,8 @@ export default function() {
   }
 
   function constrainScaleExtent() {
-    kx0 = x1 !== x0 ? Math.max(kx0, (extent()[1][0] - extent()[0][0]) / (x1 - x0)) : Infinity;
-    ky0 = y1 !== y0 ? Math.max(ky0, (extent()[1][1] - extent()[0][1]) / (y1 - y0)) : Infinity;
+    kx0 = x1 !== x0 ? Math.max(kx0u, (extent()[1][0] - extent()[0][0]) / (x1 - x0)) : Infinity;
+    ky0 = y1 !== y0 ? Math.max(ky0u, (extent()[1][1] - extent()[0][1]) / (y1 - y0)) : Infinity;
   }
 
 
@@ -397,20 +399,20 @@ export default function() {
   zoom.scaleExtent = function(_) {
     if (arguments.length) {
       if (Array.isArray(_[0])) {
-        kx0 = +_[0][0];
+        kx0u = +_[0][0];
         kx1 = +_[0][1];
-        ky0 = +_[1][0];
+        ky0u = +_[1][0];
         ky1 = +_[1][1];
       } else {
-        kx0 = +_[0];
+        kx0u = +_[0];
         kx1 = +_[1];
-        ky0 = kx0;
+        ky0u = kx0u;
         ky1 = kx1;
       }
       constrainScaleExtent();
       return zoom;
     }
-    return [[kx0, kx1], [ky0, ky1]];
+    return [[kx0u, kx1], [ky0u, ky1]];
   };
 
   zoom.scaleRatio = function(_) {
