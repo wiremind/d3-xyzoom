@@ -5,7 +5,7 @@ This plugin is a fork of [d3-zoom](https://github.com/d3/d3-zoom) that adds seve
  * Constrain scale extent on zoom out to respect translate extent constraints
  * Apply "scale factor ratio" on user input. For instance, with a scale ratio of 0.5 on x-axis and 1 on y-axis, when user zoom with its mouse, the increase of scale factor on x-axis will only be half of the increase on y-axis.
 
-[Try out the demo](https://bl.ocks.org/etiennecrb/d8125cdfb138896635dabd84b04b54e9)
+[Try out the demo](https://bl.ocks.org/etiennecrb/863a08b5be3eafe7f1d61c85d724e6c4)
 
 ## Installing
 
