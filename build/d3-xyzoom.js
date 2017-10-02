@@ -104,9 +104,18 @@
     return this.__zoom || identity;
   }
 
+  function defaultWheelDelta() {
+    return -d3Selection.event.deltaY * (d3Selection.event.deltaMode ? 120 : 1) / 500;
+  }
+
+  function touchable() {
+      return "ontouchstart" in this;
+  }
+
   function zoom() {
     var filter = defaultFilter,
       extent = defaultExtent,
+      wheelDelta = defaultWheelDelta,
       kx0 = 0,
       ky0 = 0,
       kx0u = 0, // Min scale extent defined by user, can be overridden by kx0 and ky0 defined in constrainScaleExtent
@@ -126,18 +135,21 @@
       touchstarting,
       touchending,
       touchDelay = 500,
-      wheelDelay = 150;
+      wheelDelay = 150,
+      clickDistance2 = 0;
 
     function zoom(selection) {
       selection
+        .property("__zoom", defaultTransform)
         .on("wheel.zoom", wheeled)
         .on("mousedown.zoom", mousedowned)
         .on("dblclick.zoom", dblclicked)
-        .on("touchstart.zoom", touchstarted)
-        .on("touchmove.zoom", touchmoved)
-        .on("touchend.zoom touchcancel.zoom", touchended)
-        .style("-webkit-tap-highlight-color", "rgba(0,0,0,0)")
-        .property("__zoom", defaultTransform);
+        .filter(touchable)
+          .on("touchstart.zoom", touchstarted)
+          .on("touchmove.zoom", touchmoved)
+          .on("touchend.zoom touchcancel.zoom", touchended)
+          .style("touch-action", "none")
+          .style("-webkit-tap-highlight-color", "rgba(0,0,0,0)");
     }
 
     zoom.transform = function(collection, transform) {
@@ -185,6 +197,18 @@
           typeof x === "function" ? x.apply(this, arguments) : x,
           typeof y === "function" ? y.apply(this, arguments) : y
         ), extent.apply(this, arguments));
+      });
+    };
+
+    zoom.translateTo = function(selection, x, y) {
+      zoom.transform(selection, function() {
+        var e = extent.apply(this, arguments),
+            t = this.__zoom,
+            p = centroid(e);
+        return constrain(identity.translate(p[0], p[1]).scale(t.kx, t.ky).translate(
+          typeof x === "function" ? x.apply(this, arguments) : x,
+          typeof y === "function" ? y.apply(this, arguments) : y
+        ), e);
       });
     };
 
@@ -288,8 +312,8 @@
       if (!filter.apply(this, arguments)) return;
       var g = gesture(this, arguments);
       var t = this.__zoom;
-      var kx = Math.max(kx0, Math.min(kx1, t.kx * (1 + rx * (-1 + Math.pow(2, -d3Selection.event.deltaY * (d3Selection.event.deltaMode ? 120 : 1) / 500)))));
-      var ky = Math.max(ky0, Math.min(ky1, t.ky * (1 + ry * (-1 + Math.pow(2, -d3Selection.event.deltaY * (d3Selection.event.deltaMode ? 120 : 1) / 500)))));
+      var kx = Math.max(kx0, Math.min(kx1, t.kx * (1 + rx * (-1 + Math.pow(2, wheelDelta.apply(this, arguments))))));
+      var ky = Math.max(ky0, Math.min(ky1, t.ky * (1 + ry * (-1 + Math.pow(2, wheelDelta.apply(this, arguments))))));
       var p = d3Selection.mouse(this);
 
       // If a scale factor has reached scale extend, sync its value with the other one
@@ -340,7 +364,9 @@
       if (touchending || !filter.apply(this, arguments)) return;
       var g = gesture(this, arguments),
         v = d3Selection.select(d3Selection.event.view).on("mousemove.zoom", mousemoved, true).on("mouseup.zoom", mouseupped, true),
-        p = d3Selection.mouse(this);
+        p = d3Selection.mouse(this),
+        x0 = d3Selection.event.clientX,
+        y0 = d3Selection.event.clientY;
 
       d3Drag.dragDisable(d3Selection.event.view);
       nopropagation();
@@ -350,7 +376,10 @@
 
       function mousemoved() {
         noevent();
-        g.moved = true;
+        if (!g.moved) {
+          var dx = d3Selection.event.clientX - x0, dy = d3Selection.event.clientY - y0;
+          g.moved = g.moved || dx * dx + dy * dy > clickDistance2;
+        }
         g.zoom("mouse", constrain(translate(g.that.__zoom, g.mouse[0] = d3Selection.mouse(g.that), g.mouse[1]), g.extent));
       }
 
@@ -449,7 +478,8 @@
         else if (g.touch1 && g.touch1[2] === t.identifier) delete g.touch1;
       }
       if (g.touch1 && !g.touch0) g.touch0 = g.touch1, delete g.touch1;
-      if (!g.touch0) g.end();
+      if (g.touch0) g.touch0[1] = this.__zoom.invert(g.touch0[0]);
+      else g.end();
     }
 
     function constrainScaleExtent() {
@@ -457,6 +487,13 @@
       ky0 = y1 !== y0 ? Math.max(ky0u, (extent()[1][1] - extent()[0][1]) / (y1 - y0)) : Infinity;
     }
 
+    zoom.clickDistance = function(_) {
+      return arguments.length ? (clickDistance2 = (_ = +_) * _, zoom) : Math.sqrt(clickDistance2);
+    }
+
+    zoom.wheelDelta = function(_) {
+      return arguments.length ? (wheelDelta = typeof _ === "function" ? _ : constant(+_), zoom) : wheelDelta;
+    }
 
     zoom.filter = function(_) {
       return arguments.length ? (filter = typeof _ === "function" ? _ : constant(!!_), zoom) : filter;
