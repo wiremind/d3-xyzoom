@@ -38,6 +38,10 @@ function defaultWheelDelta() {
   return -event.deltaY * (event.deltaMode ? 120 : 1) / 500;
 }
 
+function touchable() {
+    return "ontouchstart" in this;
+}
+
 export default function() {
   var filter = defaultFilter,
     extent = defaultExtent,
@@ -66,14 +70,15 @@ export default function() {
 
   function zoom(selection) {
     selection
+      .property("__zoom", defaultTransform)
       .on("wheel.zoom", wheeled)
       .on("mousedown.zoom", mousedowned)
       .on("dblclick.zoom", dblclicked)
-      .on("touchstart.zoom", touchstarted)
-      .on("touchmove.zoom", touchmoved)
-      .on("touchend.zoom touchcancel.zoom", touchended)
-      .style("-webkit-tap-highlight-color", "rgba(0,0,0,0)")
-      .property("__zoom", defaultTransform);
+      .filter(touchable)
+        .on("touchstart.zoom", touchstarted)
+        .on("touchmove.zoom", touchmoved)
+        .on("touchend.zoom touchcancel.zoom", touchended)
+        .style("-webkit-tap-highlight-color", "rgba(0,0,0,0)");
   }
 
   zoom.transform = function(collection, transform) {
