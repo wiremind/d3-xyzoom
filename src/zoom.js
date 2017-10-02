@@ -56,7 +56,8 @@ export default function() {
     touchstarting,
     touchending,
     touchDelay = 500,
-    wheelDelay = 150;
+    wheelDelay = 150,
+    clickDistance2 = 0;
 
   function zoom(selection) {
     selection
@@ -270,7 +271,9 @@ export default function() {
     if (touchending || !filter.apply(this, arguments)) return;
     var g = gesture(this, arguments),
       v = select(event.view).on("mousemove.zoom", mousemoved, true).on("mouseup.zoom", mouseupped, true),
-      p = mouse(this);
+      p = mouse(this),
+      x0 = event.clientX,
+      y0 = event.clientY;
 
     dragDisable(event.view);
     nopropagation();
@@ -280,14 +283,8 @@ export default function() {
 
     function mousemoved() {
       noevent();
-      var m = mouse(g.that);
-      if (m[0] == g.mouse[0][0] && m[1] == g.mouse[0][1]) {
-        // Mouse hasn't actually moved, so should not mark the gesture
-        // as having moved.
-        return;
-      }
-      g.moved = true;
-      g.zoom("mouse", constrain(translate(g.that.__zoom, g.mouse[0] = m, g.mouse[1]), g.extent));
+      g.moved = g.moved || Math.pow(event.clientX - x0, 2) + Math.pow(event.clientY - y0, 2) > clickDistance2;
+      g.zoom("mouse", constrain(translate(g.that.__zoom, g.mouse[0] = mouse(g.that), g.mouse[1]), g.extent));
     }
 
     function mouseupped() {
@@ -394,6 +391,9 @@ export default function() {
     ky0 = y1 !== y0 ? Math.max(ky0u, (extent()[1][1] - extent()[0][1]) / (y1 - y0)) : Infinity;
   }
 
+  zoom.clickDistance = function(_) {
+    return arguments.length ? (clickDistance2 = Math.pow(+_, 2), zoom) : Math.pow(clickDistance2, 0.5);
+  }
 
   zoom.filter = function(_) {
     return arguments.length ? (filter = typeof _ === "function" ? _ : constant(!!_), zoom) : filter;
