@@ -132,10 +132,13 @@ export default function() {
 
   zoom.translateTo = function(selection, x, y) {
     zoom.transform(selection, function() {
-      return constrain(identity.scale(this.__zoom.k).translate(
+      var e = extent.apply(this, arguments),
+          t = this.__zoom,
+          p = centroid(e);
+      return constrain(identity.translate(p[0], p[1]).scale(t.kx, t.ky).translate(
         typeof x === "function" ? x.apply(this, arguments) : x,
         typeof y === "function" ? y.apply(this, arguments) : y
-      ), extent.apply(this, arguments));
+      ), e);
     });
   };
 
