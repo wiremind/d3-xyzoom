@@ -34,9 +34,14 @@ function defaultTransform() {
   return this.__zoom || identity;
 }
 
+function defaultWheelDelta() {
+  return -event.deltaY * (event.deltaMode ? 120 : 1) / 500;
+}
+
 export default function() {
   var filter = defaultFilter,
     extent = defaultExtent,
+    wheelDelta = defaultWheelDelta,
     kx0 = 0,
     ky0 = 0,
     kx0u = 0, // Min scale extent defined by user, can be overridden by kx0 and ky0 defined in constrainScaleExtent
@@ -219,8 +224,8 @@ export default function() {
     if (!filter.apply(this, arguments)) return;
     var g = gesture(this, arguments);
     var t = this.__zoom;
-    var kx = Math.max(kx0, Math.min(kx1, t.kx * (1 + rx * (-1 + Math.pow(2, -event.deltaY * (event.deltaMode ? 120 : 1) / 500)))));
-    var ky = Math.max(ky0, Math.min(ky1, t.ky * (1 + ry * (-1 + Math.pow(2, -event.deltaY * (event.deltaMode ? 120 : 1) / 500)))));
+    var kx = Math.max(kx0, Math.min(kx1, t.kx * (1 + rx * (-1 + Math.pow(2, wheelDelta.apply(this, arguments))))));
+    var ky = Math.max(ky0, Math.min(ky1, t.ky * (1 + ry * (-1 + Math.pow(2, wheelDelta.apply(this, arguments))))));
     var p = mouse(this);
 
     // If a scale factor has reached scale extend, sync its value with the other one
@@ -396,6 +401,10 @@ export default function() {
 
   zoom.clickDistance = function(_) {
     return arguments.length ? (clickDistance2 = (_ = +_) * _, zoom) : Math.sqrt(clickDistance2);
+  }
+
+  zoom.wheelDelta = function(_) {
+    return arguments.length ? (wheelDelta = typeof _ === "function" ? _ : constant(+_), zoom) : wheelDelta;
   }
 
   zoom.filter = function(_) {
