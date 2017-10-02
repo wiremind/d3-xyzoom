@@ -130,6 +130,15 @@ export default function() {
     });
   };
 
+  zoom.translateTo = function(selection, x, y) {
+    zoom.transform(selection, function() {
+      return constrain(identity.scale(this.__zoom.k).translate(
+        typeof x === "function" ? x.apply(this, arguments) : x,
+        typeof y === "function" ? y.apply(this, arguments) : y
+      ), extent.apply(this, arguments));
+    });
+  };
+
   function scale(transform, kx, ky) {
     kx = Math.max(kx0, Math.min(kx1, kx));
     ky = Math.max(ky0, Math.min(ky1, ky));
